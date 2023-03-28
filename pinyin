@@ -1,0 +1,133 @@
+Option Explicit
+
+Function GetPY(myStr As String) As String
+'from https://blog.csdn.net/weixin_39972264/article/details/111342143
+Dim i As Integer
+
+For i = 1 To Len(myStr)
+
+If Mid(myStr, i, 1) Like "[一-龥]" Then GetPY = GetPY & Application.WorksheetFunction.Lookup(Mid(myStr, i, 1), [{"吖","A";"八","B";"擦","C";"咑","D";"婀","E";"发","F";"旮","G";"哈", "H";"讥","J";"咖","K";"拉","L";"妈","M";"拿","N";"噢","O";"趴","P";"七","Q";"然","R";"撒","S";"它","T";"洼","W";"夕","X";"丫","Y";"匝","Z"}])
+
+Next i
+
+End Function
+
+Function GetCharPY(ByVal c As String) As String
+    Dim arr() As String
+    
+    arr = Array("a", "b", "c", "d", "e", "f", "g", "h", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z")
+    
+    Dim dict As Object
+    Set dict = CreateObject("Scripting.Dictionary")
+    
+    dict.Add "阿", "a"
+    dict.Add "八", "b"
+    dict.Add "嚓", "c"
+    dict.Add "咑", "d"
+    dict.Add "妸", "e"
+    dict.Add "发", "f"
+    dict.Add "旮", "g"
+    dict.Add "铪", "h"
+    dict.Add "讥", "j"
+    dict.Add "咔", "k"
+    dict.Add "垃", "l"
+    dict.Add "麻", "m"
+    dict.Add "拿", "n"
+    dict.Add "噢", "o"
+    dict.Add "妑", "p"
+    dict.Add "七", "q"
+    dict.Add "呥", "r"
+    dict.Add "扨", "s"
+    dict.Add "他", "t"
+    dict.Add "哇", "w"
+    dict.Add "夕", "x"
+    dict.Add "丫", "y"
+    dict.Add "咋", "z"
+    
+    Dim py As String
+    py = c
+    
+    If Asc(c) >= -20319 And Asc(c) <= -20284 Then 'A区
+        py = arr((Asc(c) + 20320 - 1) \ 126 + 1)
+    ElseIf Asc(c) >= -20283 And Asc(c) <= -19776 Then 'B区
+        py = arr((Asc(c) + 20284 - 1) \ 126 + 27)
+    ElseIf Asc(c) >= -19775 And Asc(c) <= -19219 Then 'C区
+        py = arr((Asc(c) + 19776 - 1) \ 126 + 53)
+    ElseIf Asc(c) >= -19218 And Asc(c) <= -18711 Then 'D区
+        py = arr((Asc(c) + 19219 - 1) \ 126 + 79)
+    ElseIf Asc(c) >= -18710 And Asc(c) <= -18527 Then 'E区
+        py = arr((Asc(c) + 18711 - 1) \ 126 + 103)
+    ElseIf Asc(c) >= -18526 And Asc(c) <= -18240 Then 'F区
+        py = arr((Asc(c) + 18527 - 1) \ 126 + 127)
+    Else
+        If dict.Exists(c) Then
+            py = dict(c)
+        Else
+            py = ""
+        End If
+    End If
+    GetCharPY = py
+End Function
+Sub 拼音首字母查询()
+'
+' 拼音首字母查询 宏
+' 小写输入
+'
+' 快捷键: Ctrl+Shift+F
+'
+    Dim searchTerm As String
+    Dim searchRange As Range
+    Dim currentCell As Range
+    Dim currentRow As Long
+    Dim currentColumn As Long
+    Dim currentSheet As Worksheet
+    Dim pinyin As String
+    Dim matchFound As Boolean
+    Dim columnNumber As Integer
+    Dim continueSearch As Boolean
+    Dim cellValue As String
+        
+    '从用户输入中获取搜索词
+    searchTerm = InputBox("请输入搜索词：")
+    
+    '从用户输入中获取搜索列编号
+    columnNumber = InputBox("请输入搜索列的编号：")
+    
+    '检查输入的列编号是否合法
+    If columnNumber <= 0 Then
+        MsgBox "输入的列编号无效。"
+        Exit Sub
+    End If
+    
+    '根据输入的列编号构造搜索范围
+    Set searchRange = ActiveSheet.Columns(columnNumber)
+    
+    '遍历搜索范围中的每个单元格
+    For Each currentCell In searchRange.Cells
+        '将单元格值转换为拼音首字母
+        pinyin = LCase(GetPY(currentCell.Value))
+        '检查拼音首字母是否与搜索词匹配
+        If pinyin = searchTerm Then
+            '获取单元格在工作表中的位置和值
+            currentRow = currentCell.Row
+            currentColumn = currentCell.Column
+            Set currentSheet = currentCell.Worksheet
+            cellValue = currentCell.Value
+            '选择单元格并激活工作表
+            currentSheet.Activate
+            currentSheet.Cells(currentRow, currentColumn).Select
+            '设置标志指示已找到匹配项
+            matchFound = True
+            '显示单元格内容，询问是否继续查找下一个匹配项
+            continueSearch = MsgBox("已找到匹配项。单元格内容为：" & cellValue & "。是否继续查找下一个？", vbYesNo) = vbYes
+            If Not continueSearch Then
+                Exit For '用户选择不继续查找，退出循环
+            End If
+        End If
+    Next currentCell
+    
+    '检查是否找到了匹配项
+    If Not matchFound Then
+        MsgBox "未找到匹配项。"
+    End If
+End Sub
